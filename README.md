@@ -4,6 +4,12 @@
 
 :heart_on_fire: nat tool for lili 
 
+### install
+
+```
+npm i lili-tunnel -g
+```
+
 ### usage
 
 ```
