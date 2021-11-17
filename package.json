@@ -1,0 +1,30 @@
+{
+  "name": "lili-tunnel",
+  "version": "0.0.1",
+  "description": ":heart_on_fire: nat tool for lili",
+  "main": "index.js",
+  "bin": {
+    "llnat": "./cli.js"
+  },
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dtboy1995/lili-tunnel.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dtboy1995/lili-tunnel/issues"
+  },
+  "homepage": "https://github.com/dtboy1995/lili-tunnel#readme",
+  "dependencies": {
+    "colors": "^1.4.0",
+    "commander": "^8.3.0",
+    "download": "^8.0.0",
+    "fs-extra": "^10.0.0",
+    "ini": "^2.0.0",
+    "progress": "^2.0.3",
+    "table": "^6.7.3"
+  }
+}
