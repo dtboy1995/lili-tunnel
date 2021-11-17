@@ -20,7 +20,7 @@ const FRP_MAC_URL = 'https://eassistant.oss-cn-beijing.aliyuncs.com/chrome/frp_0
 
 const URL = win32 ? FRP_WIN_URL : FRP_MAC_URL
 const FRP_BASE = path.join(os.homedir(), `.${name}`)
-const FRP_MAIN = path.join(FRP_BASE, path.basename(URL, path.extname(URL)))
+const FRP_MAIN = path.join(FRP_BASE, path.basename(URL, `${win32 ? '.zip' : '.tar.gz'}`))
 const FRP_EXE = path.join(FRP_MAIN, `${win32 ? 'frpc.exe' : 'frpc'}`)
 const FRP_INI = path.join(FRP_MAIN, 'frpc.ini')
 const FRP_LOG = path.join(FRP_MAIN, 'frpc.log')

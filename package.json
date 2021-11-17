@@ -1,6 +1,6 @@
 {
   "name": "lili-tunnel",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": ":heart_on_fire: nat tool for lili",
   "main": "index.js",
   "bin": {
