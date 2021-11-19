@@ -74,6 +74,19 @@ async function preHandle() {
         })
         setFrpcIni(frpcini)
     }
+    // 二次判断
+    if (await fs.pathExists(PORT_FILE)) {
+        try {
+            let port = await fs.readFile(PORT_FILE, 'utf-8')
+            let { body } = await got.get(`http://localhost:${port}/status`, { timeout: 1500, responseType: 'json' })
+            if (body.status == 'ok') {
+                return
+            }
+        } catch (err) { }
+        fs.removeSync(PORT_FILE)
+        fs.removeSync(PID_FILE)
+        fs.removeSync(FRPC_PID_FILE)
+    }
 }
 
 async function checkDaemon() {

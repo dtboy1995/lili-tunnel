@@ -1,3 +1,9 @@
+# [0.2.0](https://github.com/dtboy1995/lili-tunnel) (2021-11-19)
+
+### Features
+
+* 二次判断daemon
+
 # [0.1.0](https://github.com/dtboy1995/lili-tunnel) (2021-11-19)
 
 ### Features
