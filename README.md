@@ -15,3 +15,7 @@ npm i lili-tunnel -g
 ```
 llnat --help
 ```
+
+```
+lln --help
+```
