@@ -93,14 +93,15 @@ async function sendCommand(cmd) {
         let port = await fs.readFile(PORT_FILE, 'utf-8')
         await got.get(`http://localhost:${port}/${cmd}`, { timeout: 5 * 1000 })
     } catch (err) { }
-    console.log(`[daemon] ${colors.green(`${cmd}`)}`)
+    console.log(`[命令] ${colors.green(`${cmd}`)}`)
 }
 
 function printList() {
     let frpcini = getFrpcIni()
     let mappings = []
     let no = 0
-    Object.keys(frpcini).forEach((key) => {
+    let running = !!fs.pathExistsSync(FRPC_PID_FILE)
+    Object.keys(frpcini).sort().forEach((key) => {
         let cfg = frpcini[key]
         if (key != 'common' && cfg.type == 'http') {
             no++
@@ -108,26 +109,21 @@ function printList() {
                 [
                     no,
                     key,
-                    cfg.type,
-                    colors.yellow(cfg.local_port),
-                    colors.green(cfg.subdomain),
-                    `http://${cfg.subdomain}.${frpcini.common.server_addr}`
+                    `http://localhost:${cfg.local_port} -> http://${cfg.subdomain}.${frpcini.common.server_addr}`,
+                    `${running ? colors.green('运行中') : colors.red('未运行')}`,
                 ]
             )
         }
     })
     const data = [
         [
-            '序号',
+            'ID',
             '名称',
-            '类型',
-            '端口',
-            '子域',
-            '地址',
+            '映射',
+            '状态',
         ].map((title) => colors.cyan(colors.bold(title)))
     ]
     mappings.forEach((mapping) => data.push(mapping))
-    console.log(`[服务状态]: ${fs.pathExistsSync(FRPC_PID_FILE) ? colors.green('已启动') : colors.red('已停止')}`)
     console.log(table(data, TABLE_CONFIG))
 }
 
@@ -141,153 +137,220 @@ async function startDaemon() {
         })
         cp.unref()
         fs.writeFileSync(PID_FILE, `${cp.pid}`)
-        console.log(`[DAEMON] ${colors.cyan('启动')}`)
     }
 }
 
 async function startApp() {
     await preHandle()
     await startDaemon()
+
     program
-        .name(`${colors.rainbow('[丽丽]内网穿透')}`)
+        .name(`${colors.rainbow(`[丽丽]内网穿透 v${version}`)}`)
         .usage(' ')
-        .option('-s, --start', '开启服务')
-        .option('-c, --config', '配置服务信息')
-        .option('-l, --list', '查看所有映射')
-        .option('-a, --add', '添加映射')
-        .option('-r, --remove', '移除映射')
-        .option('-i, --ini', '查看配置文件')
-        .option('--log', '查看日志')
-        .option('--clear', '清空日志')
-        .option('--kill', '杀掉daemon')
-        .option('--daemon', '查看daemon')
         .version(version, '-v, --version', '版本信息')
         .helpOption('-h, --help', '帮助信息')
-    program.parse(process.argv)
-    let options = program.opts()
-    if (
-        !options.start &&
-        !options.config &&
-        !options.list &&
-        !options.add &&
-        !options.remove &&
-        !options.ini &&
-        !options.log &&
-        !options.clear &&
-        !options.kill &&
-        !options.daemon
-    ) {
-        return program.help()
-    }
-    if (options.start) {
-        await sendCommand('reload')
-        printList()
-    }
-    if (options.config) {
-        let frpcini = getFrpcIni()
-        let server_addr
-        let server_port
-        let token
-        const rl = readline.createInterface({
-            input: process.stdin,
-            output: process.stdout
+        .addHelpCommand(false)
+
+    program
+        .command('start')
+        .description('开启服务')
+        .action(async () => {
+            await sendCommand('reload')
+            printList()
         })
-        try {
-            server_addr = await question(rl, '请输入服务端地址: ')
-            server_port = await question(rl, '请输入服务端端口: ')
-            token = await question(rl, '请输入token: ')
-            frpcini.common.server_addr = server_addr
-            frpcini.common.server_port = server_port
-            frpcini.common.token = token
-            setFrpcIni(frpcini)
-            console.log(`[服务端配置] ${colors.green('写入成功')}`)
-        } catch (err) {
-            throw err
-        } finally {
-            rl.close()
-        }
-    }
-    if (options.list) {
-        printList()
-    }
-    if (options.add) {
-        let frpcini = getFrpcIni()
-        let type = 'http'
-        let key
-        let local_port
-        let subdomain
-        const rl = readline.createInterface({
-            input: process.stdin,
-            output: process.stdout
+
+    program
+        .command('stop')
+        .description('停止服务')
+        .action(async () => {
+            await sendCommand('stop')
         })
-        try {
-            key = await question(rl, '请输入映射名: ')
-            local_port = await question(rl, '请输入映射端口: ')
-            subdomain = await question(rl, '请输入映射子域: ')
-            frpcini[key] = {}
-            frpcini[key].type = type
-            frpcini[key].local_port = local_port
-            frpcini[key].subdomain = subdomain
-            setFrpcIni(frpcini)
-            console.log(`[映射] ${colors.green('添加成功')}`)
-        } catch (err) {
-            throw err
-        } finally {
-            rl.close()
-        }
-        await sendCommand('reload')
-        printList()
-    }
-    if (options.remove) {
-        let frpcini = getFrpcIni()
-        const rl = readline.createInterface({
-            input: process.stdin,
-            output: process.stdout
+
+    program
+        .command('list')
+        .description('列举映射')
+        .alias('l')
+        .action(async () => {
+            printList()
         })
-        try {
-            let key = await question(rl, '请输入要删除的映射名: ')
-            delete frpcini[key]
-            setFrpcIni(frpcini)
-            console.log(`[映射] ${colors.green('删除成功')}`)
-        } catch (err) {
-            throw err
-        } finally {
-            rl.close()
-        }
-        await sendCommand('reload')
-        printList()
-    }
-    if (options.ini) {
-        printIni()
-    }
-    if (options.log) {
-        printLog()
-    }
-    if (options.clear) {
-        await fs.writeFile(FRP_LOG, '')
-        console.log(`[日志] ${colors.green('已清空')}`)
-    }
-    if (options.kill) {
-        await sendCommand('kill')
-    }
-    if (options.daemon) {
-        if (!await checkDaemon()) {
-            return
-        }
-        let port = await fs.readFile(PORT_FILE, 'utf-8')
-        let pid = await fs.readFile(PID_FILE, 'utf-8')
-        const data = [
-            [
-                '端口',
-                'PID',
-            ].map((title) => colors.cyan(colors.bold(title))),
-            [
-                port,
-                pid
+
+    program
+        .command('add')
+        .description('添加映射')
+        .action(async () => {
+            let frpcini = getFrpcIni()
+            let type = 'http'
+            let key
+            let local_port
+            let subdomain
+            const rl = readline.createInterface({
+                input: process.stdin,
+                output: process.stdout
+            })
+            try {
+                key = await question(rl, '请输入映射名: ')
+                local_port = await question(rl, '请输入映射端口: ')
+                subdomain = await question(rl, '请输入映射子域: ')
+                frpcini[key] = {}
+                frpcini[key].type = type
+                frpcini[key].local_port = local_port
+                frpcini[key].subdomain = subdomain
+                setFrpcIni(frpcini)
+                console.log(`[映射] ${colors.green('添加成功')}`)
+            } catch (err) {
+                throw err
+            } finally {
+                rl.close()
+            }
+            await sendCommand('reload')
+            printList()
+        })
+
+    program
+        .command('delete')
+        .description('删除映射')
+        .action(async () => {
+            let frpcini = getFrpcIni()
+            const rl = readline.createInterface({
+                input: process.stdin,
+                output: process.stdout
+            })
+            try {
+                let keyword = await question(rl, '请输入要删除的映射名/ID: ')
+                if (frpcini[keyword]) {
+                    delete frpcini[keyword]
+                } else {
+                    let no = 0
+                    Object.keys(frpcini).sort().forEach((key) => {
+                        let cfg = frpcini[key]
+                        if (key != 'common' && cfg.type == 'http') {
+                            no++
+                            if (no == keyword) {
+                                delete frpcini[key]
+                            }
+                        }
+                    })
+                }
+                setFrpcIni(frpcini)
+                console.log(`[映射] ${colors.green('删除成功')}`)
+            } catch (err) {
+                throw err
+            } finally {
+                rl.close()
+            }
+            await sendCommand('reload')
+            printList()
+        })
+
+    program
+        .command('config')
+        .description('服务配置')
+        .action(async () => {
+            let frpcini = getFrpcIni()
+            let server_addr
+            let server_port
+            let token
+            const rl = readline.createInterface({
+                input: process.stdin,
+                output: process.stdout
+            })
+            try {
+                server_addr = await question(rl, '请输入服务地址: ')
+                server_port = await question(rl, '请输入服务端口: ')
+                token = await question(rl, '请输入token: ')
+                frpcini.common.server_addr = server_addr
+                frpcini.common.server_port = server_port
+                frpcini.common.token = token
+                setFrpcIni(frpcini)
+                console.log(`[服务配置] ${colors.green('写入成功')}`)
+            } catch (err) {
+                throw err
+            } finally {
+                rl.close()
+            }
+        })
+
+    program
+        .command('log')
+        .description('查看日志')
+        .action(async () => {
+            printLog()
+        })
+
+    program
+        .command('clear')
+        .description('清空日志')
+        .action(async () => {
+            await fs.writeFile(FRP_LOG, '')
+            console.log(`[日志] ${colors.green('已清空')}`)
+        })
+
+    program
+        .command('ini')
+        .description('查看配置')
+        .action(async () => {
+            printIni()
+        })
+
+    program
+        .command('daemon')
+        .description('查看进程')
+        .action(async () => {
+            if (!await checkDaemon()) {
+                return
+            }
+            let port = await fs.readFile(PORT_FILE, 'utf-8')
+            let pid = await fs.readFile(PID_FILE, 'utf-8')
+            const data = [
+                [
+                    '端口',
+                    'PID',
+                ].map((title) => colors.cyan(colors.bold(title))),
+                [
+                    port,
+                    pid
+                ]
             ]
-        ]
-        console.log(table(data, TABLE_CONFIG))
-    }
+            console.log(table(data, TABLE_CONFIG))
+        })
+
+    program
+        .command('flush')
+        .description('恢复出厂')
+        .action(async () => {
+            const rl = readline.createInterface({
+                input: process.stdin,
+                output: process.stdout
+            })
+            try {
+                let confirm = await question(rl, '是否恢复配置为出场设置(y/n)?: ')
+                if (confirm == 'y') {
+                    let frpcini = {
+                        common: {
+                            server_addr: '127.0.0.1',
+                            server_port: 7000
+                        }
+                    }
+                    setFrpcIni(frpcini)
+                    await sendCommand('stop')
+                    console.log(`[配置] ${colors.green('已恢复出厂')}`)
+                    printIni()
+                }
+            } catch (err) {
+                throw err
+            } finally {
+                rl.close()
+            }
+        })
+
+    program
+        .command('kill')
+        .description('杀掉进程')
+        .action(async () => {
+            await sendCommand('kill')
+        })
+
+    program.parse(process.argv)
 }
 
 startApp()

@@ -1,10 +1,11 @@
 {
   "name": "lili-tunnel",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": ":heart_on_fire: nat tool for lili",
   "main": "index.js",
   "bin": {
-    "llnat": "./cli.js"
+    "llnat": "./cli.js",
+    "lln": "./cli.js"
   },
   "scripts": {},
   "repository": {
@@ -30,7 +31,6 @@
     "ini": "^2.0.0",
     "koa": "^2.13.4",
     "progress": "^2.0.3",
-    "table": "^6.7.3",
-    "terminate": "^2.2.2"
+    "table": "^6.7.3"
   }
 }

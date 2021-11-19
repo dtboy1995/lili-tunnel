@@ -37,6 +37,13 @@ async function killFrpc() {
     }
 }
 
+router.get('/stop', async (ctx) => {
+    ctx.status = 201
+    setTimeout(async () => {
+        await killFrpc()
+    }, 100)
+})
+
 router.get('/kill', async (ctx) => {
     ctx.status = 201
     setTimeout(async () => {

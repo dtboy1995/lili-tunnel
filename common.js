@@ -20,7 +20,7 @@ const PID_FILE = path.join(FRP_BASE, 'pid')
 const FRPC_PID_FILE = path.join(FRP_BASE, 'frpcpid')
 
 const TABLE_CONFIG = {
-    columns: Array.from(' '.repeat(6)).map(() => {
+    columns: Array.from(' '.repeat(4)).map(() => {
         return { alignment: 'center', verticalAlignment: 'middle' }
     }),
     border: {
