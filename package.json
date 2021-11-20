@@ -1,6 +1,6 @@
 {
   "name": "lili-tunnel",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": ":heart_on_fire: nat tool for lili",
   "main": "index.js",
   "bin": {
@@ -29,6 +29,7 @@
     "get-port": "^5.1.1",
     "got": "^11.8.3",
     "ini": "^2.0.0",
+    "is-reachable": "^5.1.0",
     "koa": "^2.13.4",
     "progress": "^2.0.3",
     "table": "^6.7.3"

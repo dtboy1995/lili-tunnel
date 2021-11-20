@@ -6,10 +6,11 @@ const { table } = require('table')
 const readline = require('readline')
 const download = require('download')
 const colors = require('colors/safe')
-const { program } = require('commander')
-const { version } = require('./package.json')
 const ProgressBar = require('progress')
+const { program } = require('commander')
 const { spawn } = require('child_process')
+const isReachable = require('is-reachable')
+const { version } = require('./package.json')
 const got = require('got').default
 
 const {
@@ -76,13 +77,10 @@ async function preHandle() {
     }
     // 二次判断
     if (await fs.pathExists(PORT_FILE)) {
-        try {
-            let port = await fs.readFile(PORT_FILE, 'utf-8')
-            let { body } = await got.get(`http://localhost:${port}/status`, { timeout: 1500, responseType: 'json' })
-            if (body.status == 'ok') {
-                return
-            }
-        } catch (err) { }
+        let port = await fs.readFile(PORT_FILE, 'utf-8')
+        if (await isReachable(`http://localhost:${port}/status`, { timeout: 300 })) {
+            return
+        }
         fs.removeSync(PORT_FILE)
         fs.removeSync(PID_FILE)
         fs.removeSync(FRPC_PID_FILE)
