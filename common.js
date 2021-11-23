@@ -5,8 +5,8 @@ const { name } = require('./package.json')
 
 const win32 = os.platform() == 'win32'
 
-const FRP_WIN_URL = 'https://eassistant.oss-cn-beijing.aliyuncs.com/chrome/frp_0.38.0_windows_amd64.zip'
-const FRP_MAC_URL = 'https://eassistant.oss-cn-beijing.aliyuncs.com/chrome/frp_0.38.0_darwin_arm64.tar.gz'
+const FRP_WIN_URL = process.env.FRP_WIN_URL
+const FRP_MAC_URL = process.env.FRP_MAC_URL
 
 const URL = win32 ? FRP_WIN_URL : FRP_MAC_URL
 const FRP_BASE = path.join(os.homedir(), `.${name}`)
