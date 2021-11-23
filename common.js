@@ -44,12 +44,12 @@ const TABLE_CONFIG = {
 
 module.exports = {
     TABLE_CONFIG,
+    FRPC_PID_FILE,
     FRP_BASE,
     FRP_MAIN,
     FRP_EXE,
     FRP_INI,
     FRP_LOG,
-    PORT_FILE,
     PID_FILE,
-    FRPC_PID_FILE,
+    PORT_FILE,
 }
