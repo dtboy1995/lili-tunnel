@@ -1,7 +1,7 @@
 {
   "name": "lili-tunnel",
   "version": "0.2.1",
-  "description": ":heart_on_fire: nat tool for lili",
+  "description": "nat tool for lili (frpc wrapper)",
   "main": "index.js",
   "bin": {
     "llnat": "./cli.js",
