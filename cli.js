@@ -23,6 +23,7 @@ const {
     PORT_FILE,
     PID_FILE,
     FRPC_PID_FILE,
+    URL,
 } = require('./common')
 const path = require('path')
 
@@ -282,7 +283,7 @@ async function startApp() {
         })
 
     program
-        .command('log')
+        .command('logs')
         .description('查看日志')
         .action(async () => {
             printLog()
