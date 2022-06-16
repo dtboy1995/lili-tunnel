@@ -1,6 +1,6 @@
 {
   "name": "lili-tunnel",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "nat tool for lili (frpc wrapper)",
   "main": "index.js",
   "bin": {

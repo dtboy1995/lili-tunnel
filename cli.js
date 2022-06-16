@@ -52,9 +52,26 @@ function printIni() {
     console.log(fs.readFileSync(FRP_INI, 'utf8'))
 }
 
-function printLog() {
-    console.log(`${colors.yellow('[日志]')}`)
+function printLogs() {
+    console.log(`${colors.yellow('[全部日志]')}`)
     console.log(fs.readFileSync(FRP_LOG, 'utf8'))
+}
+
+function printLog() {
+    console.log(`${colors.yellow('[最近日志]')}`)
+    let logs = fs.readFileSync(FRP_LOG, 'utf8')
+    let latests = []
+    if (logs) {
+        let lines = logs.split('\n')
+        let si = lines.length - 30;
+        if (si < 0) {
+            si = 0;
+        }
+        for (let i = si; i < lines.length; i++) {
+            latests.push(lines[i])
+        }
+    }
+    console.log(latests.join('\n'))
 }
 
 async function preHandle() {
@@ -149,6 +166,17 @@ async function startDaemon() {
         })
         cp.unref()
         fs.writeFileSync(PID_FILE, `${cp.pid}`)
+        // 等待daemon启动
+        let trys = 5
+        while (trys-- >= 0) {
+            if (await fs.pathExists(PORT_FILE)) {
+                let port = await fs.readFile(PORT_FILE, 'utf-8')
+                if (await isReachable(`http://localhost:${port}/status`, { timeout: 300 })) {
+                    return
+                }
+            }
+            await new Promise((resolve) => setTimeout(resolve, 600))
+        }
     }
 }
 
@@ -284,13 +312,28 @@ async function startApp() {
 
     program
         .command('logs')
-        .description('查看日志')
+        .description('查看全部日志')
+        .action(async () => {
+            printLogs()
+        })
+
+    program
+        .command('log')
+        .description('查看最近30行日志')
         .action(async () => {
             printLog()
         })
 
     program
         .command('clear')
+        .description('清空日志')
+        .action(async () => {
+            await fs.writeFile(FRP_LOG, '')
+            console.log(`[日志] ${colors.green('已清空')}`)
+        })
+
+    program
+        .command('cls')
         .description('清空日志')
         .action(async () => {
             await fs.writeFile(FRP_LOG, '')
